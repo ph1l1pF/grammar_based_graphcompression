@@ -1,0 +1,22 @@
+node { 
+	fill-mode: plain; 
+	fill-color: white; 
+	size: 20px, 20px; 
+	stroke-mode: none; 
+	stroke-color: black; 
+	text-size: 15px; 
+	} 
+node.marked { 
+	text-color: red; 
+	}
+node.hypernode{
+        shape: box;
+        stroke-mode: plain;
+        size: 15px,15px;
+     }
+edge { 
+	text-size: 15px; 
+	}
+edge.marked {
+	fill-color: red;
+	}
