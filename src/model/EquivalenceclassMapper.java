@@ -1,6 +1,8 @@
 package model;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
+import java.util.List;
 
 /**
  * This class is a helper class for the mapping function of a digram.
@@ -15,7 +17,7 @@ class EquivalenceclassMapper {
     /**
      * the mapping function of the class
      */
-    private final LinkedList<Tuple<GraphNode, Integer>> function = new LinkedList<>();
+    private final List<Tuple<GraphNode, Integer>> function = new ArrayList<>();
 
 
     /**

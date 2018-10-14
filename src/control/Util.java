@@ -2,6 +2,9 @@ package control;
 
 import model.*;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * This class is a class for standard tasks.
  * @author Matthias Duerksen
@@ -35,8 +38,8 @@ class Util {
         for (SimpleEdge edge : edges) {
             graph.add(edge);
         }
-        CompressionControl control= new CompressionControl();
-        control.findAllDigrams(graph);
+        CompressionControl control = new CompressionControl();
+        control.graphCompression(graph);
 
         return graph;
     }

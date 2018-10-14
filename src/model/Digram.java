@@ -263,7 +263,7 @@ public class Digram {
     private String innerToString() {
         if (!hasInlined) {
 
-            return startNodeLabel + "->" + endNodeLabel;// + " Size: " + occurrences.size();
+            return startNodeLabel + " " + equivStartNode + " -> " + equivEndNode + " " + endNodeLabel;// + " Size: " + occurrences.size();
         } else {
             String text = "";
             boolean added = false;

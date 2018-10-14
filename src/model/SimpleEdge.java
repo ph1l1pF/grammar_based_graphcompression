@@ -97,6 +97,11 @@ public class SimpleEdge extends Edge {
         return endnode;
     }
 
+    @Override
+    public String toString() {
+        return startnode + " "+eq_start +"->"+eq_end+" "+endnode;
+    }
+
     /**
      * Getter for the Id of the edge.
      * @return the Id of the edge.

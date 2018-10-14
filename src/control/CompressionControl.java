@@ -43,7 +43,7 @@ class CompressionControl {
     public LinkedList<Tuple<HyperGraph, LinkedList<Digram>>> graphCompression(HyperGraph untransformedGraph) {
         addCurrentGraph(untransformedGraph, digrams);
 
-        HyperGraph graph = transformGraph(untransformedGraph);
+        HyperGraph graph = untransformedGraph;//transformGraph(untransformedGraph);
         addCurrentGraph(graph, digrams);
 
 
@@ -113,6 +113,7 @@ class CompressionControl {
             SimpleEdge edge = (SimpleEdge) entry.getValue();
             checkAndAddEdgeToDigram(edge);
         }
+       System.out.println( "digrams: "+digramlist.getAllActiveDigrams().size());
 
     }
 
@@ -153,7 +154,7 @@ class CompressionControl {
      * @param edge the edge for which the method will be executed.
      */
     private void checkAndAddEdgeToDigram(SimpleEdge edge) {
-        Digram digram = digramlist.getDigram(edge.getStartnode().getLabel(), edge.getEndnode().getLabel());
+        Digram digram = digramlist.getDigram(edge);
         if (digram != null && !digram.containsNode(edge.getStartnode().getId()) && !digram.containsNode(edge.getEndnode().getId())) {
             digram.addDigram(edge);
         }
