@@ -57,15 +57,6 @@ public class DigramList {
         return digramList.get(tuple1).get(tuple2);
     }
 
-    /**
-     * Checks if the digram list has a digram for the two labels.
-     * @param label1 start node for the digram.
-     * @param label2 end node for the digram.
-     * @return true if the digram list contains the digram, else false.
-     */
-    private boolean containsDigramFor(String label1, String label2) {
-        return (digramList.containsKey(label1) && digramList.get(label1).containsKey(label2));
-    }
 
     /**
      * Gets the digram with the maximal associated digrams.
@@ -97,14 +88,6 @@ public class DigramList {
      * @return all active digrams of the digram list in a LinkedList.
      */
     public List<Digram> getAllActiveDigrams() {
-//        List<Digram> digrams = new ArrayList<>();
-//        for (String label1 : labels) {
-//            for (String label2 : labels) {
-//                if (containsDigramFor(label1, label2) && getDigram(label1, label2).getSize() > 1) {
-//                    digrams.add(getDigram(label1, label2));
-//                }
-//            }
-//        }
         List<Digram> allDigrams = new ArrayList<>();
         for(HashMap<Tuple<String,Integer>, Digram> value : digramList.values()){
             for(Digram digram : value.values()){

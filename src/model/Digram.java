@@ -158,9 +158,8 @@ public class Digram {
      * @param edge the edge for the new occurrence.
      */
     public void addDigram(SimpleEdge edge) {
-        Occurrence occ = new Occurrence(edge.getStartnode(), edge, edge.getEndnode(), this);
+        Occurrence occ = new Occurrence(edge.getStartnode(), edge, edge.getEndnode());
         occurrences.add(occ);
-//        equivalenceFunction.updateFunction(occ);
         for (GraphNode node : occ.getNodes()) {
             allNodes.put(node.getId(), node);
         }
