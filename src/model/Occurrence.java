@@ -1,5 +1,6 @@
 package model;
 
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -27,14 +28,14 @@ public class Occurrence {
      * The end node from the occurrence.
      */
     private final GraphNode endnode;
-
+    private final Map<GraphNode,GraphNode> mapOccNodeToDigrNode = new HashMap<>();
     /**
      * Constructor for the class Occurrence.
      * @param startnode the start node for the occurrence.
      * @param edge the internal edge for the occurrence.
      * @param endnode the end node for the occurrence.
      */
-    public Occurrence(GraphNode startnode, SimpleEdge edge, GraphNode endnode) {
+    public Occurrence(GraphNode startnode, SimpleEdge edge, GraphNode endnode, Digram digram) {
         this.startnode = startnode;
         this.edge = edge;
         this.endnode = endnode;
@@ -74,6 +75,14 @@ public class Occurrence {
         return false;
     }
 
+    public GraphNode getStartnode() {
+        return startnode;
+    }
+
+    public GraphNode getEndnode() {
+        return endnode;
+    }
+
     /**
      * Checks if the occurrence has the param node as an internal node.
      * @param node the node for which the check is executed.
@@ -81,5 +90,9 @@ public class Occurrence {
      */
     private boolean containsNode(GraphNode node) {
         return ((node.getId() == startnode.getId() || node.getId() == endnode.getId()));
+    }
+
+    public void putNodeMapping(GraphNode nodeFromOcc, GraphNode nodeFromDigram){
+        mapOccNodeToDigrNode.put(nodeFromOcc,nodeFromDigram);
     }
 }

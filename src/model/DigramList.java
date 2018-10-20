@@ -34,7 +34,7 @@ public class DigramList {
      * Gets the Digram for the labels label1,label2.
      * @return the digram for the two labels.
      */
-    public Digram getDigram(SimpleEdge edge) {
+    public Digram getDigram(SimpleEdge edge, List<Digram> appliedDigrams) {
         String label1 = edge.getStartnode().getLabel();
         String label2 = edge.getEndnode().getLabel();
 
@@ -52,7 +52,7 @@ public class DigramList {
         }
         if (!digramList.get(tuple1).containsKey(tuple2)) {
 
-            digramList.get(tuple1).put(tuple2, new Digram(label1, label2, equiv1, equiv2));
+            digramList.get(tuple1).put(tuple2, new Digram(label1, label2, equiv1, equiv2, appliedDigrams));
         }
         return digramList.get(tuple1).get(tuple2);
     }
@@ -75,7 +75,7 @@ public class DigramList {
         Digram maxDigram = null;
         int currentSize = 1;
         for (Digram digram : getAllActiveDigrams()) {
-            if (digram.getSize() >= currentSize && !digram.hasBeenAplied()) {
+            if (digram.getSize() > currentSize && !digram.hasBeenAplied()) {
                 maxDigram = digram;
                 currentSize = digram.getSize();
                 digram.setBeenApplied();

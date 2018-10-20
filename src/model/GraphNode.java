@@ -54,6 +54,16 @@ public class GraphNode {
         return label;
     }
 
+    @Override
+    public boolean equals(Object obj) {
+        return id == ((GraphNode)obj).id;
+    }
+
+    @Override
+    public int hashCode() {
+        return id;
+    }
+
     /**
      * Getter for the id.
      * @return Id of the node.

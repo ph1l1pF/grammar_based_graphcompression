@@ -2,26 +2,24 @@ package control;
 
 import model.*;
 
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.Map;
+import java.util.*;
 
 /**
  * This is a class for the compression of a HyperGraph Object.
- *
- *This class implements a grammar based compression method for graphs. The graph must be an HyperGraph Object. Then the class can execute the compression and produce a compressed HyperGraph with its applied digrams.
+ * <p>
+ * This class implements a grammar based compression method for graphs. The graph must be an HyperGraph Object. Then the class can execute the compression and produce a compressed HyperGraph with its applied appliedDigrams.
  *
  * @author Matthias Duerksen
  * @see HyperGraph
  */
 class CompressionControl {
     /**
-     * all applied digrams.
+     * all applied appliedDigrams.
      */
-    private final LinkedList<Digram> digrams = new LinkedList<>();
+    private final LinkedList<Digram> appliedDigrams = new LinkedList<>();
 
     /**
-     * the data structure for all active digrams.
+     * the data structure for all active appliedDigrams.
      */
     public DigramList digramlist;
 
@@ -33,18 +31,20 @@ class CompressionControl {
     /**
      * Standard Constructor.
      */
-    public CompressionControl(){}
+    public CompressionControl() {
+    }
 
     /**
      * Execution of the whole grammar based compression method.
+     *
      * @param untransformedGraph an uncompressed graph.
      * @return all intermediate compression results  and thus also the compressed graph.
      */
     public LinkedList<Tuple<HyperGraph, LinkedList<Digram>>> graphCompression(HyperGraph untransformedGraph) {
-        addCurrentGraph(untransformedGraph, digrams);
+        addCurrentGraph(untransformedGraph, appliedDigrams);
 
         HyperGraph graph = untransformedGraph;//transformGraph(untransformedGraph);
-        addCurrentGraph(graph, digrams);
+        addCurrentGraph(graph, appliedDigrams);
 
 
         findAllDigrams(graph);
@@ -52,18 +52,18 @@ class CompressionControl {
 
         while (currentDigram != null) {
             replaceNextDigrams(graph, currentDigram);
-            digrams.add(currentDigram);
+            appliedDigrams.add(currentDigram);
             updateDigramList(graph, currentDigram);
             currentDigram = digramlist.getMaxDigram();
 
-            addCurrentGraph(graph, digrams);
+            addCurrentGraph(graph, appliedDigrams);
         }
 
-        pruning(graph, digrams);
-        addCurrentGraph(graph, digrams);
+        pruning(graph, appliedDigrams);
+        addCurrentGraph(graph, appliedDigrams);
 
         graph = edgeOptimization(graph);
-        addCurrentGraph(graph, digrams);
+        addCurrentGraph(graph, appliedDigrams);
 
 
         return allGraphs;
@@ -72,9 +72,10 @@ class CompressionControl {
 
     /**
      * Trasformation of the uncompressed graph to another graph model.
-     *
+     * <p>
      * The graph is transformed to a graph which has no hyperedge and no edge labels.
      * This is realized by transforming the graph in such a way that all incident elements become adjacent elements.
+     *
      * @param untransformedGraph the untransformed graph.
      * @return the transformed graph.
      */
@@ -101,8 +102,9 @@ class CompressionControl {
     }
 
     /**
-     * This method finds all active basic digrams of a graph and stores them in the DigramList.
-     * @param graph the graph for which the digrams will be captured.
+     * This method finds all active basic appliedDigrams of a graph and stores them in the DigramList.
+     *
+     * @param graph the graph for which the appliedDigrams will be captured.
      */
     public void findAllDigrams(HyperGraph graph) {
 
@@ -113,13 +115,13 @@ class CompressionControl {
             SimpleEdge edge = (SimpleEdge) entry.getValue();
             checkAndAddEdgeToDigram(edge);
         }
-       System.out.println( "digrams: "+digramlist.getAllActiveDigrams().size());
+        System.out.println("appliedDigrams: " + digramlist.getAllActiveDigrams().size());
 
     }
 
     /**
      * This method finds all labels in the graph which are necessary for the compression.
-     *
+     * <p>
      * A label is called necessary iff the label occurs at least twice in the graph.
      *
      * @param graph the graph for which the method will be executed.
@@ -148,56 +150,114 @@ class CompressionControl {
 
     /**
      * This method checks if the edge overlaps with a digram and perhaps adds a new digram.
-     *
+     * <p>
      * This method checks whether the corresponding occurrence in the digram contains some of the incident nodes of the edge.
      * If the digram does not contain some of the node, an occurrence for the edge is added to the corresponding digram.
+     *
      * @param edge the edge for which the method will be executed.
      */
     private void checkAndAddEdgeToDigram(SimpleEdge edge) {
-        Digram digram = digramlist.getDigram(edge);
+        Digram digram = digramlist.getDigram(edge, appliedDigrams);
         if (digram != null && !digram.containsNode(edge.getStartnode().getId()) && !digram.containsNode(edge.getEndnode().getId())) {
             digram.addDigram(edge);
         }
     }
 
     /**
-     * This method replaces all associated digrams of the digram in the graph.
-     * @param graph the graph for which the method will be executed.
-     * @param digram the digram for which the method will be executed.
+     *
+     * @param edge
+     * @param occ
+     * @return
      */
-    public void replaceNextDigrams(HyperGraph graph, Digram digram) {
-        digram.setNonterminal();
-        for (Occurrence occurrence : digram.getAllOccurrences()) {
-            GraphNode newNode = new GraphNode(digram.getNonterminal());
-            graph.add(newNode);
-            graph.delete(occurrence.getEdge());
-            for (GraphNode node : occurrence.getNodes()) {
-                HashMap<Integer, Edge> copiedEdges = (HashMap<Integer, Edge>) graph.getAllEdges().clone();
-                for (Map.Entry<Integer, Edge> entry : copiedEdges.entrySet()) {
-                    SimpleEdge edge = (SimpleEdge) entry.getValue();
-                    if (edge.getStartnode().equals(node) && edge.getEndnode().equals(node)) {
-                        graph.add(new SimpleEdge(newNode, digram.getNewEquivalenceClass(node, edge.getEquivalenceClass(node)), newNode, edge.getEquivalenceClass(node)));
-                        graph.delete(edge);
-                    } else if (edge.getStartnode().equals(node)) {
-                        graph.add(new SimpleEdge(newNode, digram.getNewEquivalenceClass(node, edge.getEquivalenceClass(node)), edge.getEndnode(), edge.getEquivalenceClass(edge.getEndnode())));
-                        graph.delete(edge);
-                    } else if (edge.getEndnode().equals(node)) {
-                        graph.add(new SimpleEdge(edge.getStartnode(), edge.getEquivalenceClass(edge.getStartnode()), newNode, digram.getNewEquivalenceClass(node, edge.getEquivalenceClass(node))));
-                        graph.delete(edge);
-                    }
-
-                }
-
-                graph.delete(node);
+    private GraphNode getNodeInEdgeAndOccurrence(SimpleEdge edge, Occurrence occ) {
+        for (GraphNode nodeOcc : occ.getNodes()) {
+            if (nodeOcc.equals(edge.getStartnode()) || nodeOcc.equals(edge.getEndnode())) {
+                return nodeOcc;
             }
         }
+        return null;
     }
 
     /**
-     * This method updates the digramlist for the applied digram.
+     * For the given edge compute a new equiv class at start or end node.
+     * @param tuples Contains all equiv class mapping inner -> outer
+     * @param edge The relevant edge
+     * @param endOrStartNode one of the nodes of the edge
+     * @return the new equiv class number
+     */
+    private int getNewEquivClassForEdge(List<Tuple<Integer, Integer>> tuples, SimpleEdge edge , GraphNode endOrStartNode){
+        for (Tuple<Integer, Integer> equivTuple : tuples) {
+            if (equivTuple.x == edge.getEquivalenceClass(endOrStartNode)) {
+                return equivTuple.y;
+            }
+        }
+        // this never happens
+        throw new RuntimeException("unable to compute new equiv class");
+    }
+
+
+    /**
+     * This method replaces all associated appliedDigrams of the digram in the graph.
      *
+     * @param graph  the graph for which the method will be executed.
+     * @param digram the digram for which the method will be executed.
+     */
+    public void replaceNextDigrams(HyperGraph graph, Digram digram) {
+
+        digram.setNonterminal();
+        for (Occurrence occ : digram.getAllOccurrences()) {
+            GraphNode newNode = new GraphNode(digram.getNonterminal());
+            graph.add(newNode);
+            List<Edge> allEdges = new ArrayList<>(graph.getAllEdges().values());
+            for (int i = 0; i < allEdges.size(); i++) {
+                SimpleEdge oldEdge = (SimpleEdge) allEdges.get(i);
+                GraphNode nodeOcc = getNodeInEdgeAndOccurrence(oldEdge, occ);
+                if (nodeOcc == null) {
+                    // in this case the oldEdge is not incident to occ, so nothing to do
+                    continue;
+                }
+                if (oldEdge.equals(occ.getEdge())) {
+                    // in this case, the edge is removed and no new edge is inserted
+                    allEdges.remove(i);
+                    i--;
+                    continue;
+                }
+
+                // now we have an oldEdge incident to occ
+                // we want to construct a newEdge to replace oldEdge
+                SimpleEdge newEdge = null;
+                String mapKey = nodeOcc.equals(occ.getStartnode()) ? "startNode" : "endNode";
+                List<Tuple<Integer, Integer>> tuples = digram.getMapEquivClasses().get(mapKey);
+
+                if (nodeOcc.equals(oldEdge.getStartnode())) {
+                    int newEquivClass = getNewEquivClassForEdge(tuples, oldEdge, oldEdge.getStartnode());
+                    newEdge = new SimpleEdge(newNode, newEquivClass, oldEdge.getEndnode(), oldEdge.getEquivalenceClass(oldEdge.getEndnode()));
+                } else if (nodeOcc.equals(oldEdge.getEndnode())) {
+                    int newEquivClass = getNewEquivClassForEdge(tuples, oldEdge, oldEdge.getEndnode());
+                    newEdge = new SimpleEdge(oldEdge.getStartnode(), oldEdge.getEquivalenceClass(oldEdge.getStartnode()),
+                            newNode, newEquivClass);
+                }
+
+                allEdges.remove(i);
+                allEdges.add(i, newEdge);
+
+            }
+            graph.getAllEdges().clear();
+            for (Edge edge : allEdges) {
+                graph.getAllEdges().put(edge.getId(), edge);
+            }
+
+        }
+    }
+
+
+
+    /**
+     * This method updates the digramlist for the applied digram.
+     * <p>
      * After applying the digram the digramlist must be adjusted. This is done by this method.
-     * @param graph the graph for which the method will be executed.
+     *
+     * @param graph         the graph for which the method will be executed.
      * @param appliedDigram the digram for which the method will be executed.
      */
     private void updateDigramList(HyperGraph graph, Digram appliedDigram) {
@@ -217,11 +277,12 @@ class CompressionControl {
     }
 
     /**
-     * For the applied digrams it is checked whether the digrams can be represented more efficiently.
-     *
+     * For the applied appliedDigrams it is checked whether the appliedDigrams can be represented more efficiently.
+     * <p>
      * If a digram d is not contained in the graph and only once in one digram s, the digram d will be inlined in the digram s.
-     * @param graph the graph for which the method will be executed.
-     * @param digrams the digrams for which the method will be executed.
+     *
+     * @param graph   the graph for which the method will be executed.
+     * @param digrams the appliedDigrams for which the method will be executed.
      */
     private void pruning(HyperGraph graph, LinkedList<Digram> digrams) {
         LinkedList<Digram> tmpDigrams = (LinkedList<Digram>) digrams.clone();
@@ -237,6 +298,7 @@ class CompressionControl {
 
     /**
      * This method optimizes the number of elements by replacing two edges with an incedent node to a new edge with a label.
+     *
      * @param graph the graph for which the method will be executed.
      * @return the optimized graph.
      */
@@ -285,8 +347,9 @@ class CompressionControl {
 
     /**
      * Checks if two edges are incident to the node and one is an incoming edge and the other one is an outgoing edge.
+     *
      * @param edges the edges for which the method will be executed.
-     * @param node the node for which the method will be executed.
+     * @param node  the node for which the method will be executed.
      * @return true if the edges are both incident to the node an one is an incoming and the other one is an outgoing edge, else false.
      */
     private boolean checkCorrectDirection(LinkedList<SimpleEdge> edges, GraphNode node) {
@@ -311,9 +374,10 @@ class CompressionControl {
     }
 
     /**
-     * Counts how often the label is contained in the digrams.
+     * Counts how often the label is contained in the appliedDigrams.
+     *
      * @param nt the label for which the method will be executed.
-     * @return the number of occurrences in all digrams.
+     * @return the number of occurrences in all appliedDigrams.
      */
     private Tuple<Digram, Integer> getNTOccurrencesDigram(String nt) {
         Digram currentDigram = null;
@@ -330,9 +394,10 @@ class CompressionControl {
     }
 
     /**
-     * add a graph and its applied digrams to the intermediate results.
-     * @param graph the current graph for the compression interstate.
-     * @param digrams the current digrams for the compression interstate.
+     * add a graph and its applied appliedDigrams to the intermediate results.
+     *
+     * @param graph   the current graph for the compression interstate.
+     * @param digrams the current appliedDigrams for the compression interstate.
      */
     private void addCurrentGraph(HyperGraph graph, LinkedList<Digram> digrams) {
         allGraphs.add(new Tuple<>(graph.clone(), (LinkedList<Digram>) digrams.clone()));

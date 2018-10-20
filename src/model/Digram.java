@@ -2,8 +2,7 @@ package model;
 
 
 
-import java.util.HashMap;
-import java.util.LinkedList;
+import java.util.*;
 
 /**
  * This is a class for a replacement digram which is called Digram.
@@ -46,7 +45,9 @@ public class Digram {
     /**
      * the mapping function for the digram.
      */
-    private final EquivalenceclassMapper equivalenceFunction = new EquivalenceclassMapper();
+//    private final EquivalenceclassMapper equivalenceFunction = new EquivalenceclassMapper();
+
+    private final Map<String, List<Tuple<Integer, Integer>>> mapEquivClasses = new HashMap<>();
     /**
      * the non terminal from the digram.
      */
@@ -60,6 +61,8 @@ public class Digram {
      */
     private boolean beenApplied = false;
 
+    private int equivClassCounter = 1;
+
     /**
      * Constructor for the Digram.
      * @param startNodeLabel the label for the start node of the digram.
@@ -67,11 +70,48 @@ public class Digram {
      * @param equivStartNode
      * @param equivEndNode
      */
-    public Digram(String startNodeLabel, String endNodeLabel, int equivStartNode, int equivEndNode) {
+    public Digram(String startNodeLabel, String endNodeLabel, int equivStartNode, int equivEndNode, List<Digram> appliedDigrams) {
         this.startNodeLabel = startNodeLabel;
         this.endNodeLabel = endNodeLabel;
         this.equivStartNode = equivStartNode;
         this.equivEndNode = equivEndNode;
+
+        // establish the mapping of equiv functions
+        putTuplesForNodeWithLabel(appliedDigrams, startNodeLabel, true);
+        putTuplesForNodeWithLabel(appliedDigrams, endNodeLabel, false);
+    }
+
+    private void putTuplesForNodeWithLabel(List<Digram> appliedDigrams, String nodeLabel, boolean isStartNode){
+        List<Tuple<Integer, Integer>> lstNewTuples = new ArrayList<>();
+        boolean isNonTerminal = false;
+        for(Digram appliedDigram : appliedDigrams){
+            if(appliedDigram.getNonterminal().equals(nodeLabel)){
+                // the startnode is a non terminal, so more complex mapping is needed
+                isNonTerminal = true;
+                Map<String, List<Tuple<Integer, Integer>>> mapEquivClassesAppliedDigr = appliedDigram.getMapEquivClasses();
+
+                for(List<Tuple<Integer, Integer>> lstTuples : mapEquivClassesAppliedDigr.values()){
+                    for(Tuple<Integer, Integer> tuple : lstTuples){
+                        lstNewTuples.add(new Tuple<>(tuple.y, equivClassCounter++));
+                    }
+                }
+            }
+        }
+        if(!isNonTerminal){
+            // just a normal node, only one tuple is needed
+            lstNewTuples.add(new Tuple<>(1, equivClassCounter++));
+        }
+
+        if(isStartNode) {
+            mapEquivClasses.put("startNode", lstNewTuples);
+        }else{
+            mapEquivClasses.put("endNode", lstNewTuples);
+
+        }
+    }
+
+    public Map<String, List<Tuple<Integer, Integer>>> getMapEquivClasses() {
+        return mapEquivClasses;
     }
 
     /**
@@ -80,9 +120,9 @@ public class Digram {
      * @param oldEquivalenceClass the old Equivalenceclass which the new Equivalenceclass is to be calculated for.
      * @return the new Equivalenceclass for the node and old EquivalenceClass.
      */
-    public int getNewEquivalenceClass(GraphNode node, int oldEquivalenceClass) {
-        return equivalenceFunction.getNewEquivalenceClass(node, oldEquivalenceClass);
-    }
+//    public int getNewEquivalenceClass(GraphNode node, int oldEquivalenceClass) {
+//        return equivalenceFunction.getNewEquivalenceClass(node, oldEquivalenceClass);
+//    }
 
     /**
      * Gets the old EquivalenceClass and the node for an EquivalenceClass.
@@ -92,9 +132,9 @@ public class Digram {
      * @param newEquivalenceClass the EquivalenceClass which the result is to be calculated for.
      * @return the old EquivalenceClass and the node as a Tuple for the newEquivalenceClass.
      */
-    public Tuple<GraphNode, Integer> getOldEquivalenceClass(int newEquivalenceClass) {
-        return equivalenceFunction.getOldEquivalenceClass(newEquivalenceClass);
-    }
+//    public Tuple<GraphNode, Integer> getOldEquivalenceClass(int newEquivalenceClass) {
+//        return equivalenceFunction.getOldEquivalenceClass(newEquivalenceClass);
+//    }
 
     /**
      * Indicates whether there is a node in the associated occurrences with the id 'nodeid'.
@@ -118,10 +158,10 @@ public class Digram {
      * @param edge the edge for the new occurrence.
      */
     public void addDigram(SimpleEdge edge) {
-        Occurrence digram = new Occurrence(edge.getStartnode(), edge, edge.getEndnode());
-        occurrences.add(digram);
-        equivalenceFunction.updateFunction(digram);
-        for (GraphNode node : digram.getNodes()) {
+        Occurrence occ = new Occurrence(edge.getStartnode(), edge, edge.getEndnode(), this);
+        occurrences.add(occ);
+//        equivalenceFunction.updateFunction(occ);
+        for (GraphNode node : occ.getNodes()) {
             allNodes.put(node.getId(), node);
         }
 
