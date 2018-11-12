@@ -7,6 +7,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 
 import javax.swing.JFrame;
@@ -335,7 +336,7 @@ public class MyFrame extends JFrame {
      * @param markedElements contains all Elements of the HyperGraph which should be marked (here for all elements which will be replaced in the next step).
      * @param nextDigram   the current digram which is executed in the next step.
      */
-    public synchronized void refreshGraph(HyperGraph hyperGraph, String text, Tuple<LinkedList<GraphNode>, LinkedList<Edge>> markedElements, Digram nextDigram) {
+    public synchronized void refreshGraph(HyperGraph hyperGraph, String text, Tuple<List<GraphNode>, List<Edge>> markedElements, Digram nextDigram) {
         graph.clear();
         displayGraph(hyperGraph);
         textArea.append(text + "\n");
@@ -446,9 +447,9 @@ public class MyFrame extends JFrame {
      * Here this is used to display which elements will be replaced in the next step.
      * @param markedElements elements that should be marked.
      */
-    private void markElements(Tuple<LinkedList<GraphNode>, LinkedList<Edge>> markedElements) {
-        LinkedList<GraphNode> nodes = markedElements.x;
-        LinkedList<Edge> edges = markedElements.y;
+    private void markElements(Tuple<List<GraphNode>, List<Edge>> markedElements) {
+        List<GraphNode> nodes = markedElements.x;
+        List<Edge> edges = markedElements.y;
 
         for (GraphNode node : nodes) {
             Node uiNode = graph.getNode(getIDString(node));
@@ -467,7 +468,7 @@ public class MyFrame extends JFrame {
      * Displays all pruned digrams and the size of the digrams in the textarea.
      * @param digrams digrams that should be displayed.
      */
-    public void showAllDigrams(LinkedList<Digram> digrams) {
+    public void showAllDigrams(List<Digram> digrams) {
 
         textArea.append("\n");
         for (Digram digram : digrams) {

@@ -1,9 +1,6 @@
 package control;
 
-import model.GraphNode;
-import model.HyperEdge;
-import model.HyperGraph;
-import model.SimpleEdge;
+import model.*;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -42,7 +39,16 @@ public class RDFTurtleReader {
                 graph.add(endNode);
             }
 
-            graph.add(new HyperEdge(startNode, endNode, triple[1]));
+            boolean edgeAlreadyContained = false;
+            for(Edge edge : graph.getAllEdges().values()){
+                HyperEdge hyperEdge = (HyperEdge)edge;
+                if(hyperEdge.getStartnodes()[0].equals(startNode)&&hyperEdge.getEndnodes()[0].equals(endNode)){
+                    edgeAlreadyContained = true;
+                }
+            }
+            if(!edgeAlreadyContained) {
+                graph.add(new HyperEdge(startNode, endNode, triple[1]));
+            }
         }
 
 
@@ -54,11 +60,7 @@ public class RDFTurtleReader {
         System.out.println(graph.getAllNodes().size());
         System.out.println(graph.getAllEdges().size());
 
-        HyperGraph transformedGraph = new CompressionControl().transformGraph(graph);
-        System.out.println(transformedGraph.getAllNodes().size());
-        System.out.println(transformedGraph.getAllEdges().size());
-
-        new CompressionControl().findAllDigrams(transformedGraph);
+        new CompressionControl(graph).graphCompression(true);
 
 
 

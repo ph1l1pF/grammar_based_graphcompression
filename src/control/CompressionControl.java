@@ -3,6 +3,7 @@ package control;
 import model.*;
 
 import java.util.*;
+import java.util.concurrent.*;
 
 /**
  * This is a class for the compression of a HyperGraph Object.
@@ -23,31 +24,76 @@ class CompressionControl {
      */
     public DigramList digramlist;
 
+    private HyperGraph graph;
+
     /**
      * list of all intermediate compression results.
      */
-    private final LinkedList<Tuple<HyperGraph, LinkedList<Digram>>> allGraphs = new LinkedList<>();
+    private final List<Tuple<HyperGraph, List<Digram>>> allGraphs = new ArrayList<>();
+
+    private SearchWorker[] workers;
 
     /**
      * Standard Constructor.
      */
-    public CompressionControl() {
+    public CompressionControl(HyperGraph graph) {
+        this.graph = graph;
+        workers = new SearchWorker[Runtime.getRuntime().availableProcessors()*2];
+
     }
 
     /**
      * Execution of the whole grammar based compression method.
      *
-     * @param untransformedGraph an uncompressed graph.
      * @return all intermediate compression results  and thus also the compressed graph.
      */
-    public LinkedList<Tuple<HyperGraph, LinkedList<Digram>>> graphCompression(HyperGraph untransformedGraph) {
-        addCurrentGraph(untransformedGraph, appliedDigrams);
+    public List<Tuple<HyperGraph, List<Digram>>> graphCompression(boolean transform) {
+        addCurrentGraph(graph, appliedDigrams);
 
-        HyperGraph graph = untransformedGraph;//transformGraph(untransformedGraph);
+        if (transform) {
+            graph = transformGraph(graph);
+        }
         addCurrentGraph(graph, appliedDigrams);
 
 
-        findAllDigrams(graph);
+        // start all search workers
+        for (int i = 0; i < workers.length; i++) {
+            workers[i] = new SearchWorker(appliedDigrams, graph);
+        }
+
+        for(SearchWorker worker:workers){
+            worker.run();
+        }
+
+        for(SearchWorker worker:workers){
+            try {
+                worker.join();
+            } catch (InterruptedException e) {
+                System.out.println("error");
+            }
+        }
+
+
+        List<DigramList> digramLists = new ArrayList<>();
+        for(SearchWorker worker : workers){
+            digramLists.add(worker.digramList);
+        }
+
+        DigramList bestDigramList = digramLists.get(0);
+        int bestNoOcc = 0;
+        for(DigramList digramList : digramLists){
+            Digram maxDigram = digramList.getMaxDigram();
+            if(maxDigram!=null ){
+                if(maxDigram.getAllOccurrences().size() > bestNoOcc) {
+                    bestDigramList = digramList;
+                    bestNoOcc = maxDigram.getAllOccurrences().size();
+                }
+            }
+        }
+        this.digramlist = bestDigramList;
+
+        // work with the new digramList
+
         Digram currentDigram = digramlist.getMaxDigram();
 
         while (currentDigram != null) {
@@ -101,70 +147,8 @@ class CompressionControl {
         return graph;
     }
 
-    /**
-     * This method finds all active basic appliedDigrams of a graph and stores them in the DigramList.
-     *
-     * @param graph the graph for which the appliedDigrams will be captured.
-     */
-    public void findAllDigrams(HyperGraph graph) {
-
-        LinkedList<String> labels = getNecessaryLabels(graph);
-
-        digramlist = new DigramList(labels);
-        for (Map.Entry<Integer, Edge> entry : graph.getAllEdges().entrySet()) {
-            SimpleEdge edge = (SimpleEdge) entry.getValue();
-            checkAndAddEdgeToDigram(edge);
-        }
-        System.out.println("appliedDigrams: " + digramlist.getAllActiveDigrams().size());
-
-    }
 
     /**
-     * This method finds all labels in the graph which are necessary for the compression.
-     * <p>
-     * A label is called necessary iff the label occurs at least twice in the graph.
-     *
-     * @param graph the graph for which the method will be executed.
-     * @return all necessary different labels.
-     */
-    private LinkedList<String> getNecessaryLabels(HyperGraph graph) {
-        HashMap<String, Integer> labelCounter = new HashMap<>();
-
-        //Find All different Labels with more then 2 occurences
-        //foreach GraphNode in graph
-        for (Map.Entry<Integer, GraphNode> entry : graph.getAllNodes().entrySet()) {
-            GraphNode node = entry.getValue();
-            if (!labelCounter.containsKey(node.getLabel())) {
-                labelCounter.put(node.getLabel(), 0);
-            }
-            labelCounter.replace(node.getLabel(), labelCounter.get(node.getLabel()) + 1);
-        }
-        LinkedList<String> labels = new LinkedList<>();
-        for (Map.Entry<String, Integer> entry : labelCounter.entrySet()) {
-            if (entry.getValue() > 1) {
-                labels.add(entry.getKey());
-            }
-        }
-        return labels;
-    }
-
-    /**
-     * This method checks if the edge overlaps with a digram and perhaps adds a new digram.
-     * <p>
-     * This method checks whether the corresponding occurrence in the digram contains some of the incident nodes of the edge.
-     * If the digram does not contain some of the node, an occurrence for the edge is added to the corresponding digram.
-     *
-     * @param edge the edge for which the method will be executed.
-     */
-    private void checkAndAddEdgeToDigram(SimpleEdge edge) {
-        Digram digram = digramlist.getDigram(edge, appliedDigrams);
-        if (digram != null && !digram.containsNode(edge.getStartnode().getId()) && !digram.containsNode(edge.getEndnode().getId())) {
-            digram.addDigram(edge);
-        }
-    }
-
-    /**
-     *
      * @param edge
      * @param occ
      * @return
@@ -180,12 +164,13 @@ class CompressionControl {
 
     /**
      * For the given edge compute a new equiv class at start or end node.
-     * @param tuples Contains all equiv class mapping inner -> outer
-     * @param edge The relevant edge
+     *
+     * @param tuples         Contains all equiv class mapping inner -> outer
+     * @param edge           The relevant edge
      * @param endOrStartNode one of the nodes of the edge
      * @return the new equiv class number
      */
-    private int getNewEquivClassForEdge(List<Tuple<Integer, Integer>> tuples, SimpleEdge edge , GraphNode endOrStartNode){
+    private int getNewEquivClassForEdge(List<Tuple<Integer, Integer>> tuples, SimpleEdge edge, GraphNode endOrStartNode) {
         for (Tuple<Integer, Integer> equivTuple : tuples) {
             if (equivTuple.x == edge.getEquivalenceClass(endOrStartNode)) {
                 return equivTuple.y;
@@ -238,6 +223,7 @@ class CompressionControl {
                             newNode, newEquivClass);
                 }
 
+                graph.getAllNodes().remove(nodeOcc.getId(), nodeOcc);
                 allEdges.remove(i);
                 allEdges.add(i, newEdge);
 
@@ -249,7 +235,6 @@ class CompressionControl {
 
         }
     }
-
 
 
     /**
@@ -269,11 +254,26 @@ class CompressionControl {
         for (Map.Entry<Integer, Edge> entry : graph.getAllEdges().entrySet()) {
             SimpleEdge edge = (SimpleEdge) entry.getValue();
             if (edge.containsLabel(appliedDigram.getNonterminal())) {
-                checkAndAddEdgeToDigram(edge);
+                checkAndAddEdgeToDigram(edge, digramlist, appliedDigrams);
             }
         }
 
 
+    }
+
+    /**
+     * This method checks if the edge overlaps with a digram and perhaps adds a new digram.
+     * <p>
+     * This method checks whether the corresponding occurrence in the digram contains some of the incident nodes of the edge.
+     * If the digram does not contain some of the node, an occurrence for the edge is added to the corresponding digram.
+     *
+     * @param edge the edge for which the method will be executed.
+     */
+    public static void checkAndAddEdgeToDigram(SimpleEdge edge, DigramList digramList, LinkedList<Digram> appliedDigrams) {
+        Digram digram = digramList.getDigram(edge, appliedDigrams);
+        if (digram != null && !digram.containsNode(edge.getStartnode().getId()) && !digram.containsNode(edge.getEndnode().getId())) {
+            digram.addDigram(edge);
+        }
     }
 
     /**

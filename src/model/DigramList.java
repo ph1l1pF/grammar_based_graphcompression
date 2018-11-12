@@ -14,7 +14,8 @@ public class DigramList {
     /**
      * the data structure for DigramList which is realized by a double connected HashMap.
      */
-    private final Map<Tuple<String,Integer>, HashMap<Tuple<String,Integer>, Digram>> digramList = new HashMap<>();
+    private Map<Tuple<String,Integer>, HashMap<Tuple<String,Integer>, Digram>> digramList = new HashMap<>();
+
 
     /**
      * a set for the necessary different labels of the nodes in the graph.
