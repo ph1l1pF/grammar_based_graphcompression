@@ -14,18 +14,19 @@ public class DigramList {
     /**
      * the data structure for DigramList which is realized by a double connected HashMap.
      */
-    private final Map<Tuple<String,Integer>, HashMap<Tuple<String,Integer>, Digram>> digramList = new HashMap<>();
+    private Map<Tuple<String,Integer>, HashMap<Tuple<String,Integer>, Digram>> digramList = new HashMap<>();
+
 
     /**
      * a set for the necessary different labels of the nodes in the graph.
      */
-    private final LinkedList<String> labels;
+    private final List<String> labels;
 
     /**
      * Constructor for the DigramList.
      * @param labels the necessary different labels of the nodes in the graph.
      */
-    public DigramList(LinkedList<String> labels) {
+    public DigramList(List<String> labels) {
 
         this.labels = labels;
     }
@@ -66,7 +67,7 @@ public class DigramList {
         Digram maxDigram = null;
         int currentSize = 1;
         for (Digram digram : getAllActiveDigrams()) {
-            if (digram.getSize() > currentSize && !digram.hasBeenAplied()) {
+            if (digram.getSize() > currentSize) {
                 maxDigram = digram;
                 currentSize = digram.getSize();
                 digram.setBeenApplied();

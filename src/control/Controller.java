@@ -3,7 +3,9 @@ package control;
 import model.*;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map.Entry;
 
 /**
@@ -83,9 +85,9 @@ class Controller extends Thread {
 	 */
 	public void graphCompression() {
 		if (graph != null) {
-			CompressionControl compressionControl = new CompressionControl();
+			CompressionControl compressionControl = new CompressionControl(graph);
 
-			LinkedList<Tuple<HyperGraph, LinkedList<Digram>>> tuples = compressionControl.graphCompression(graph);
+			List<Tuple<HyperGraph, List<Digram>>> tuples = compressionControl.graphCompression(true);
 			guiController.setButtonNextStep();
 			displayCompression(tuples);
 		} else {
@@ -100,10 +102,10 @@ class Controller extends Thread {
 	 * @param tuples
 	 *            compression results of the compression of the graph.
 	 */
-	private void displayCompression(LinkedList<Tuple<HyperGraph, LinkedList<Digram>>> tuples) {
-		for (Tuple<HyperGraph, LinkedList<Digram>> tuple : tuples) {
+	private void displayCompression(List<Tuple<HyperGraph, List<Digram>>> tuples) {
+		for (Tuple<HyperGraph, List<Digram>> tuple : tuples) {
 			HyperGraph graph = tuple.x;
-			LinkedList<Digram> digrams = tuple.y;
+			List<Digram> digrams = tuple.y;
 
 			String textAreaLine = "";
 			int currentIndex = tuples.indexOf(tuple);
@@ -119,14 +121,14 @@ class Controller extends Thread {
 			} else if (currentIndex == tuples.size() - 2) {
 				textAreaLine += "Pruning";
 			} else {
-				Digram lastDigram = digrams.getLast();
+				Digram lastDigram = digrams.get(digrams.size()-1);
 				textAreaLine += lastDigram.toStringUnpruned();
 			}
 
-			Tuple<LinkedList<GraphNode>, LinkedList<Edge>> markedElements = getNodesToMark(tuples, currentIndex + 1);
+			Tuple<List<GraphNode>, List<Edge>> markedElements = getNodesToMark(tuples, currentIndex + 1);
 			Digram currentDigram = null;
 			if (0 < currentIndex && currentIndex < tuples.size() - 3 && tuples.get(currentIndex + 1).y.size() > 0)
-				currentDigram = tuples.get(currentIndex + 1).y.getLast();
+				currentDigram = tuples.get(currentIndex + 1).y.get(tuples.get(currentIndex + 1).y.size()-1);
 
 			guiController.refreshGraph(graph, textAreaLine, markedElements, currentDigram);
 
@@ -150,17 +152,17 @@ class Controller extends Thread {
 	 *            the current simulation step from the step-by-step-simulation.
 	 * @return all nodes and edges that should be marked.
 	 */
-	private Tuple<LinkedList<GraphNode>, LinkedList<Edge>> getNodesToMark(
-			LinkedList<Tuple<HyperGraph, LinkedList<Digram>>> tuples, int currentSimulationStepIndex) {
-		LinkedList<GraphNode> nodes = new LinkedList<>();
-		LinkedList<Edge> edges = new LinkedList<>();
+	private Tuple<List<GraphNode>, List<Edge>> getNodesToMark(
+			List<Tuple<HyperGraph, List<Digram>>> tuples, int currentSimulationStepIndex) {
+		List<GraphNode> nodes = new ArrayList<>();
+		List<Edge> edges = new ArrayList<>();
 
 		if (0 < currentSimulationStepIndex && currentSimulationStepIndex < tuples.size() - 2) {
-			Tuple<HyperGraph, LinkedList<Digram>> tuple = tuples.get(currentSimulationStepIndex);
+			Tuple<HyperGraph, List<Digram>> tuple = tuples.get(currentSimulationStepIndex);
 			HyperGraph graph = tuples.get(currentSimulationStepIndex - 1).x;
 
 			if (tuple.y.size() > 0) {
-				Digram newDigram = tuple.y.getLast();
+				Digram newDigram = tuple.y.get(tuple.y.size()-1);
 				for (Entry<Integer, Edge> entry : graph.getAllEdges().entrySet()) {
 					Edge edgeObject = entry.getValue();
 					SimpleEdge edge = (SimpleEdge) edgeObject;

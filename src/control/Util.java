@@ -11,6 +11,32 @@ import java.util.Map;
  */
 class Util {
 
+    public static HyperGraph createOtherGraphFromThesis(){
+        HyperGraph graph = new HyperGraph();
+
+        GraphNode[] nodes = new GraphNode[4];
+        nodes[0]= new GraphNode("n2");
+        nodes[1]= new GraphNode("n1");
+        nodes[2]= new GraphNode("n2");
+        nodes[3]= new GraphNode("n1");
+
+        SimpleEdge[] edges = new SimpleEdge[3];
+        edges[0] = new SimpleEdge(nodes[1], nodes[0]);
+        edges[1] = new SimpleEdge(nodes[1], nodes[2]);
+        edges[2] = new SimpleEdge(nodes[3], nodes[2]);
+
+        for (GraphNode node : nodes) {
+            graph.add(node);
+        }
+        for (SimpleEdge edge : edges) {
+            graph.add(edge);
+        }
+        CompressionControl control = new CompressionControl(graph);
+        control.graphCompression(false);
+
+        return graph;
+    }
+
     public static HyperGraph createGraphFromThesis(){
         HyperGraph graph = new HyperGraph();
 
@@ -38,14 +64,14 @@ class Util {
         for (SimpleEdge edge : edges) {
             graph.add(edge);
         }
-        CompressionControl control = new CompressionControl();
-        control.graphCompression(graph);
+        CompressionControl control = new CompressionControl(graph);
+        control.graphCompression(false);
 
         return graph;
     }
 
     public static void main(String[] a){
-        createGraphFromThesis();
+        createOtherGraphFromThesis();
     }
 
     /**

@@ -1,6 +1,7 @@
 package control;
 
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Random;
 
 import model.*;
@@ -117,27 +118,27 @@ class RandomGraph {
      * @see CompressionControl
      */
     private static void compressRandomGraph(int numNodes, int numEdges, int numNodeLabels, int numEdgeLabels) {
-        HyperGraph graph= RandomGraph.constructRandomGraph(numNodes,numEdges,numNodeLabels,numEdgeLabels);
-        CompressionControl compressionControl = new CompressionControl();
-
-        LinkedList<Tuple<HyperGraph, LinkedList<Digram>>> tuples = compressionControl.graphCompression(graph);
-
-
-        HyperGraph compressedGraph= tuples.getLast().x;
-        LinkedList<Digram> usedDigrams= tuples.getLast().y;
-        System.out.println("Compression finished for a graph with the parameters: "+numNodes+" nodes, "+numEdges+" edges, "+numNodeLabels+" different node labels, "+ numEdgeLabels+ " different edge labels\n");
-        System.out.println("Compressed Graph: "+compressedGraph.getAllNodes().size()+" nodes, "+compressedGraph.getAllEdges().size()+" edges");
-
-        int digramsSize = 0;
-        for (Digram digram : usedDigrams) {
-
-            Tuple<Integer, Integer> numInternalElements = digram.getNumInternalElements();
-            digramsSize += numInternalElements.x+numInternalElements.y;
-
-        }
-
-        System.out.println(usedDigrams.size()+" digrams ("+ tuples.get(tuples.size()-3).y.size()+ " unpruned digrams) applied with a size of "+ digramsSize);
-        System.out.println("Graph compressed from a size of " + (numNodes+numEdges)+" to a size of " + (compressedGraph.getAllNodes().size()+compressedGraph.getAllEdges().size()+digramsSize));
+//        HyperGraph graph= RandomGraph.constructRandomGraph(numNodes,numEdges,numNodeLabels,numEdgeLabels);
+//        CompressionControl compressionControl = new CompressionControl();
+//
+//        List<Tuple<HyperGraph, List<Digram>>> tuples = compressionControl.graphCompression(graph,true);
+//
+//
+//        HyperGraph compressedGraph= tuples.getLast().x;
+//        LinkedList<Digram> usedDigrams= tuples.getLast().y;
+//        System.out.println("Compression finished for a graph with the parameters: "+numNodes+" nodes, "+numEdges+" edges, "+numNodeLabels+" different node labels, "+ numEdgeLabels+ " different edge labels\n");
+//        System.out.println("Compressed Graph: "+compressedGraph.getAllNodes().size()+" nodes, "+compressedGraph.getAllEdges().size()+" edges");
+//
+//        int digramsSize = 0;
+//        for (Digram digram : usedDigrams) {
+//
+//            Tuple<Integer, Integer> numInternalElements = digram.getNumInternalElements();
+//            digramsSize += numInternalElements.x+numInternalElements.y;
+//
+//        }
+//
+//        System.out.println(usedDigrams.size()+" digrams ("+ tuples.get(tuples.size()-3).y.size()+ " unpruned digrams) applied with a size of "+ digramsSize);
+//        System.out.println("Graph compressed from a size of " + (numNodes+numEdges)+" to a size of " + (compressedGraph.getAllNodes().size()+compressedGraph.getAllEdges().size()+digramsSize));
     }
 
 
