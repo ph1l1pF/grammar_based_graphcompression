@@ -3,7 +3,6 @@ package control;
 import model.*;
 
 import java.util.*;
-import java.util.concurrent.*;
 
 /**
  * This is a class for the compression of a HyperGraph Object.
@@ -38,7 +37,7 @@ class CompressionControl {
      */
     public CompressionControl(HyperGraph graph) {
         this.graph = graph;
-        workers = new SearchWorker[Runtime.getRuntime().availableProcessors()*2];
+        workers = new SearchWorker[Runtime.getRuntime().availableProcessors() * 2];
 
     }
 
@@ -55,52 +54,15 @@ class CompressionControl {
         }
         addCurrentGraph(graph, appliedDigrams);
 
-
-        // start all search workers
-        for (int i = 0; i < workers.length; i++) {
-            workers[i] = new SearchWorker(appliedDigrams, graph);
-        }
-
-        for(SearchWorker worker:workers){
-            worker.run();
-        }
-
-        for(SearchWorker worker:workers){
-            try {
-                worker.join();
-            } catch (InterruptedException e) {
-                System.out.println("error");
+        while (true) {
+            this.digramlist = findAllBasicDigrams();
+            Digram currentDigram = digramlist.getMaxDigram();
+            if (currentDigram == null) {
+                break;
             }
-        }
-
-
-        List<DigramList> digramLists = new ArrayList<>();
-        for(SearchWorker worker : workers){
-            digramLists.add(worker.digramList);
-        }
-
-        DigramList bestDigramList = digramLists.get(0);
-        int bestNoOcc = 0;
-        for(DigramList digramList : digramLists){
-            Digram maxDigram = digramList.getMaxDigram();
-            if(maxDigram!=null ){
-                if(maxDigram.getAllOccurrences().size() > bestNoOcc) {
-                    bestDigramList = digramList;
-                    bestNoOcc = maxDigram.getAllOccurrences().size();
-                }
-            }
-        }
-        this.digramlist = bestDigramList;
-
-        // work with the new digramList
-
-        Digram currentDigram = digramlist.getMaxDigram();
-
-        while (currentDigram != null) {
-            replaceNextDigrams(graph, currentDigram);
+            replaceAllOccurrences(graph, currentDigram);
             appliedDigrams.add(currentDigram);
-            updateDigramList(graph, currentDigram);
-            currentDigram = digramlist.getMaxDigram();
+//            updateDigramList(graph, currentDigram);
 
             addCurrentGraph(graph, appliedDigrams);
         }
@@ -113,6 +75,45 @@ class CompressionControl {
 
 
         return allGraphs;
+    }
+
+    private DigramList findAllBasicDigrams() {
+        // start all search workers
+        List<String> labels = getAllDuplicatedLabelsLabels(graph);
+        for (int i = 0; i < workers.length; i++) {
+            workers[i] = new SearchWorker(appliedDigrams, graph, labels);
+        }
+
+        for (SearchWorker worker : workers) {
+            worker.run();
+        }
+
+        for (SearchWorker worker : workers) {
+            try {
+                worker.join();
+            } catch (InterruptedException e) {
+                System.out.println("error");
+            }
+        }
+
+        // gather and compare the results of the workers
+        List<DigramList> digramLists = new ArrayList<>();
+        for (SearchWorker worker : workers) {
+            digramLists.add(worker.digramList);
+        }
+
+        DigramList bestDigramList = digramLists.get(0);
+        int bestNoOcc = 0;
+        for (DigramList digramList : digramLists) {
+            Digram maxDigram = digramList.getMaxDigram();
+            if (maxDigram != null) {
+                if (maxDigram.getAllOccurrences().size() > bestNoOcc) {
+                    bestDigramList = digramList;
+                    bestNoOcc = maxDigram.getAllOccurrences().size();
+                }
+            }
+        }
+        return bestDigramList;
     }
 
 
@@ -187,7 +188,7 @@ class CompressionControl {
      * @param graph  the graph for which the method will be executed.
      * @param digram the digram for which the method will be executed.
      */
-    public void replaceNextDigrams(HyperGraph graph, Digram digram) {
+    public void replaceAllOccurrences(HyperGraph graph, Digram digram) {
 
         digram.setNonterminal();
         for (Occurrence occ : digram.getAllOccurrences()) {
@@ -259,6 +260,35 @@ class CompressionControl {
         }
 
 
+    }
+
+    /**
+     * This method finds all labels in the graph which are necessary for the compression.
+     * <p>
+     * A label is called necessary iff the label occurs at least twice in the graph.
+     *
+     * @param graph the graph for which the method will be executed.
+     * @return all necessary different labels.
+     */
+    private LinkedList<String> getAllDuplicatedLabelsLabels(HyperGraph graph) {
+        HashMap<String, Integer> labelCounter = new HashMap<>();
+
+        //Find All different Labels with more then 2 occurences
+        //foreach GraphNode in graph
+        for (Map.Entry<Integer, GraphNode> entry : graph.getAllNodes().entrySet()) {
+            GraphNode node = entry.getValue();
+            if (!labelCounter.containsKey(node.getLabel())) {
+                labelCounter.put(node.getLabel(), 0);
+            }
+            labelCounter.replace(node.getLabel(), labelCounter.get(node.getLabel()) + 1);
+        }
+        LinkedList<String> labels = new LinkedList<>();
+        for (Map.Entry<String, Integer> entry : labelCounter.entrySet()) {
+            if (entry.getValue() > 1) {
+                labels.add(entry.getKey());
+            }
+        }
+        return labels;
     }
 
     /**

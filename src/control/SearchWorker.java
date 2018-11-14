@@ -3,7 +3,6 @@ package control;
 import model.*;
 
 import java.util.*;
-import java.util.concurrent.Callable;
 
 
 public class SearchWorker extends Thread {
@@ -11,11 +10,13 @@ public class SearchWorker extends Thread {
     private final LinkedList<Digram> appliedDigrams;
     private HyperGraph graph;
     public DigramList digramList;
+    private List<String> labels;
 
 
-    public SearchWorker(LinkedList<Digram> appliedDigrams, HyperGraph graph) {
+    public SearchWorker(LinkedList<Digram> appliedDigrams, HyperGraph graph, List<String> labels) {
         this.appliedDigrams = appliedDigrams;
         this.graph = graph;
+        this.labels = labels;
     }
 
     @Override
@@ -27,8 +28,6 @@ public class SearchWorker extends Thread {
      * This method finds all active basic appliedDigrams of a graph and stores them in the DigramList.
      */
     public DigramList findAllBaseDigrams() {
-
-        LinkedList<String> labels = getNecessaryLabels(graph);
 
         digramList = new DigramList(labels);
 
@@ -55,32 +54,5 @@ public class SearchWorker extends Thread {
 
     }
 
-    /**
-     * This method finds all labels in the graph which are necessary for the compression.
-     * <p>
-     * A label is called necessary iff the label occurs at least twice in the graph.
-     *
-     * @param graph the graph for which the method will be executed.
-     * @return all necessary different labels.
-     */
-    private LinkedList<String> getNecessaryLabels(HyperGraph graph) {
-        HashMap<String, Integer> labelCounter = new HashMap<>();
 
-        //Find All different Labels with more then 2 occurences
-        //foreach GraphNode in graph
-        for (Map.Entry<Integer, GraphNode> entry : graph.getAllNodes().entrySet()) {
-            GraphNode node = entry.getValue();
-            if (!labelCounter.containsKey(node.getLabel())) {
-                labelCounter.put(node.getLabel(), 0);
-            }
-            labelCounter.replace(node.getLabel(), labelCounter.get(node.getLabel()) + 1);
-        }
-        LinkedList<String> labels = new LinkedList<>();
-        for (Map.Entry<String, Integer> entry : labelCounter.entrySet()) {
-            if (entry.getValue() > 1) {
-                labels.add(entry.getKey());
-            }
-        }
-        return labels;
-    }
 }
