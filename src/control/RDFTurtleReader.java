@@ -1,6 +1,9 @@
 package control;
 
-import model.*;
+import model.Graph.Edge;
+import model.Graph.Node;
+import model.Graph.HyperEdge;
+import model.Graph.HyperGraph;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -11,7 +14,7 @@ public class RDFTurtleReader {
 
     public static HyperGraph extractFromTurtleFile(String path) throws IOException {
         List<String> lines = Files.readAllLines(Paths.get(path));
-        Map<String, GraphNode> mapLabelToNode = new HashMap<>();
+        Map<String, Node> mapLabelToNode = new HashMap<>();
         HyperGraph graph = new HyperGraph();
         for (int i = 0; i < lines.size(); i++)
         {
@@ -25,16 +28,16 @@ public class RDFTurtleReader {
                 break;
             }
 
-            GraphNode startNode = mapLabelToNode.get(triple[0]);
+            Node startNode = mapLabelToNode.get(triple[0]);
             if(startNode==null){
-                startNode = new GraphNode(triple[0]);
+                startNode = new Node(triple[0]);
                 mapLabelToNode.put(triple[0], startNode);
                 graph.add(startNode);
             }
 
-            GraphNode endNode = mapLabelToNode.get(triple[2]);
+            Node endNode = mapLabelToNode.get(triple[2]);
             if(endNode==null){
-                endNode = new GraphNode(triple[2]);
+                endNode = new Node(triple[2]);
                 mapLabelToNode.put(triple[2], endNode);
                 graph.add(endNode);
             }

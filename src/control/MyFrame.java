@@ -6,7 +6,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -17,15 +16,16 @@ import javax.swing.JScrollPane;
 import javax.swing.border.EmptyBorder;
 
 import model.*;
+import model.Digram.Digram;
+import model.Graph.*;
 import org.graphstream.graph.Graph;
-import org.graphstream.graph.Node;
 import org.graphstream.graph.implementations.MultiGraph;
 import org.graphstream.ui.swingViewer.DefaultView;
 import org.graphstream.ui.view.Viewer;
 import org.graphstream.ui.view.ViewerListener;
 import org.graphstream.ui.view.ViewerPipe;
 
-import model.Digram;
+import model.Digram.BasicDigram;
 
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
@@ -260,7 +260,7 @@ public class MyFrame extends JFrame {
         });
         contentPane.add(btnChoose);
 
-        lblNextDigram = new JLabel("Next Digram:");
+        lblNextDigram = new JLabel("Next BasicDigram:");
         lblNextDigram.setFont(new Font("Tahoma", Font.PLAIN, 16));
         lblNextDigram.setBounds(397, 639, 110, 25);
         contentPane.add(lblNextDigram);
@@ -283,7 +283,7 @@ public class MyFrame extends JFrame {
 
             @Override
             public void buttonPushed(String id) {
-                Node n = graph.getNode(id);
+                org.graphstream.graph.Node n = graph.getNode(id);
                 String attributes[] = n.getAttributeKeySet().toArray(new String[n.getAttributeKeySet().size()]);
 
                 String attributeToChange = (String) JOptionPane.showInputDialog(null, "Select attibute to modify", "Attribute for " + id, JOptionPane.QUESTION_MESSAGE, null, attributes, attributes[0]);
@@ -336,7 +336,7 @@ public class MyFrame extends JFrame {
      * @param markedElements contains all Elements of the HyperGraph which should be marked (here for all elements which will be replaced in the next step).
      * @param nextDigram   the current digram which is executed in the next step.
      */
-    public synchronized void refreshGraph(HyperGraph hyperGraph, String text, Tuple<List<GraphNode>, List<Edge>> markedElements, Digram nextDigram) {
+    public synchronized void refreshGraph(HyperGraph hyperGraph, String text, Tuple<List<Node>, List<Edge>> markedElements, BasicDigram nextDigram) {
         graph.clear();
         displayGraph(hyperGraph);
         textArea.append(text + "\n");
@@ -374,12 +374,12 @@ public class MyFrame extends JFrame {
      * @param graph the graph which is to be displayed.
      * @param nodes the nodes which should be displayed.
      */
-    private void displayNodes(Graph graph, HashMap<Integer, GraphNode> nodes) {
-        for (Map.Entry<Integer, GraphNode> entry : nodes.entrySet()) {
-            GraphNode graphNode = entry.getValue();
+    private void displayNodes(Graph graph, HashMap<Integer, Node> nodes) {
+        for (Map.Entry<Integer, Node> entry : nodes.entrySet()) {
+            Node graphNode = entry.getValue();
 
             graph.addNode(getIDString(graphNode));
-            Node node = graph.getNode(getIDString(graphNode));
+            org.graphstream.graph.Node node = graph.getNode(getIDString(graphNode));
             node.setAttribute("ui.label", graphNode.getLabel());
 
         }
@@ -401,7 +401,7 @@ public class MyFrame extends JFrame {
                 HyperEdge myEdge = (HyperEdge) entry.getValue();
                 if (myEdge.getStartnodes().length!=1||myEdge.getEndnodes().length!=1){
                     graph.addNode("hypernode"+myEdge.getId());
-                    Node uiNode = graph.getNode("hypernode"+myEdge.getId());
+                    org.graphstream.graph.Node uiNode = graph.getNode("hypernode"+myEdge.getId());
                     uiNode.setAttribute("ui.label", myEdge.getLabel());
                     uiNode.setAttribute("ui.class", "hypernode");
                     for (int i=0;i<myEdge.getStartnodes().length;i++) {
@@ -428,7 +428,7 @@ public class MyFrame extends JFrame {
      * @param node the node which the id is to be generated for.
      * @return the id for the displayed node.
      */
-    private String getIDString(GraphNode node) {
+    private String getIDString(Node node) {
         return "n" + node.getId();
     }
 
@@ -447,12 +447,12 @@ public class MyFrame extends JFrame {
      * Here this is used to display which elements will be replaced in the next step.
      * @param markedElements elements that should be marked.
      */
-    private void markElements(Tuple<List<GraphNode>, List<Edge>> markedElements) {
-        List<GraphNode> nodes = markedElements.x;
+    private void markElements(Tuple<List<Node>, List<Edge>> markedElements) {
+        List<Node> nodes = markedElements.x;
         List<Edge> edges = markedElements.y;
 
-        for (GraphNode node : nodes) {
-            Node uiNode = graph.getNode(getIDString(node));
+        for (Node node : nodes) {
+            org.graphstream.graph.Node uiNode = graph.getNode(getIDString(node));
             uiNode.setAttribute("ui.class", "marked");
         }
 

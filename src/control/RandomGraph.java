@@ -1,10 +1,10 @@
 package control;
 
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Random;
 
-import model.*;
+import model.Graph.Node;
+import model.Graph.HyperEdge;
+import model.Graph.HyperGraph;
 
 /**
  * This is a class to create a random HyperGraph.
@@ -44,7 +44,7 @@ class RandomGraph {
     private static void createNodes(HyperGraph graph, int numNodes, int numNodeLabels) {
         String[] nodeLabels = createNodeLabels(numNodeLabels);
         for (int i = 0; i < numNodes; i++) {
-            graph.add(new GraphNode(getRandomLabel(nodeLabels)));
+            graph.add(new Node(getRandomLabel(nodeLabels)));
         }
 
     }
@@ -75,11 +75,11 @@ class RandomGraph {
             Random generator = new Random();
 
             Object[] values = graph.getAllNodes().values().toArray();
-            GraphNode startnode = (GraphNode) values[generator.nextInt(values.length)];
-            GraphNode endnode = (GraphNode) values[generator.nextInt(values.length)];
+            Node startnode = (Node) values[generator.nextInt(values.length)];
+            Node endnode = (Node) values[generator.nextInt(values.length)];
 
 
-            graph.add(new HyperEdge(new GraphNode[]{startnode}, new GraphNode[]{endnode}, getRandomLabel(edgeLabels)));
+            graph.add(new HyperEdge(new Node[]{startnode}, new Node[]{endnode}, getRandomLabel(edgeLabels)));
         }
     }
 
@@ -121,16 +121,16 @@ class RandomGraph {
 //        HyperGraph graph= RandomGraph.constructRandomGraph(numNodes,numEdges,numNodeLabels,numEdgeLabels);
 //        CompressionControl compressionControl = new CompressionControl();
 //
-//        List<Tuple<HyperGraph, List<Digram>>> tuples = compressionControl.graphCompression(graph,true);
+//        List<Tuple<HyperGraph, List<BasicDigram>>> tuples = compressionControl.graphCompression(graph,true);
 //
 //
 //        HyperGraph compressedGraph= tuples.getLast().x;
-//        LinkedList<Digram> usedDigrams= tuples.getLast().y;
+//        LinkedList<BasicDigram> usedDigrams= tuples.getLast().y;
 //        System.out.println("Compression finished for a graph with the parameters: "+numNodes+" nodes, "+numEdges+" edges, "+numNodeLabels+" different node labels, "+ numEdgeLabels+ " different edge labels\n");
 //        System.out.println("Compressed Graph: "+compressedGraph.getAllNodes().size()+" nodes, "+compressedGraph.getAllEdges().size()+" edges");
 //
 //        int digramsSize = 0;
-//        for (Digram digram : usedDigrams) {
+//        for (BasicDigram digram : usedDigrams) {
 //
 //            Tuple<Integer, Integer> numInternalElements = digram.getNumInternalElements();
 //            digramsSize += numInternalElements.x+numInternalElements.y;
