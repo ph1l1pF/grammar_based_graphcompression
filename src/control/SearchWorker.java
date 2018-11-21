@@ -1,6 +1,13 @@
 package control;
 
-import model.*;
+import model.Digram.Digram;
+import model.DigramList.AdjacencyDigramList;
+import model.DigramList.BasicDigramList;
+import model.DigramList.DigramList;
+import model.Graph.Edge;
+import model.Graph.Node;
+import model.Graph.HyperGraph;
+import model.Graph.SimpleEdge;
 
 import java.util.*;
 
@@ -9,7 +16,9 @@ public class SearchWorker extends Thread {
 
     private final LinkedList<Digram> appliedDigrams;
     private HyperGraph graph;
-    public DigramList digramList;
+    public BasicDigramList digramListBasicDigrams;
+    public AdjacencyDigramList digramListAdjacencyDigrams;
+
     private List<String> labels;
 
 
@@ -22,14 +31,15 @@ public class SearchWorker extends Thread {
     @Override
     public void run() {
          findAllBaseDigrams();
+         findAllAdjacencyDigrams();
     }
 
     /**
      * This method finds all active basic appliedDigrams of a graph and stores them in the DigramList.
      */
-    public DigramList findAllBaseDigrams() {
+    private DigramList findAllBaseDigrams() {
 
-        digramList = new DigramList(labels);
+        digramListBasicDigrams = new BasicDigramList(labels);
 
         // compute random permutation
         List<Edge> edgesCopy = new ArrayList<>(graph.getAllEdges().values());
@@ -47,11 +57,36 @@ public class SearchWorker extends Thread {
         }
 
         for (Edge edge : edgesInRandomOrder) {
-            CompressionControl.checkAndAddEdgeToDigram((SimpleEdge) edge, digramList, appliedDigrams);
+            CompressionControl.checkAndAddEdgeToDigram((SimpleEdge) edge, digramListBasicDigrams, appliedDigrams);
         }
 
-        return digramList;
+        return digramListBasicDigrams;
 
+    }
+
+    private DigramList findAllAdjacencyDigrams(){
+        digramListAdjacencyDigrams = new AdjacencyDigramList(labels);
+
+        // compute random permutation
+        List<Node> nodesCopy = new ArrayList<>(graph.getAllNodes().values());
+        List<Node> nodesInRandomOrder = new ArrayList<>();
+
+        int numNodes = nodesCopy.size();
+        while (nodesInRandomOrder.size() < numNodes) {
+            int randomIndex = 0;
+            if (nodesCopy.size() > 1) {
+                randomIndex = new Random().nextInt(nodesCopy.size() - 1);
+            }
+
+            nodesInRandomOrder.add(nodesCopy.get(randomIndex));
+            nodesCopy.remove(randomIndex);
+        }
+
+        for (Node node : nodesInRandomOrder) {
+            digramListAdjacencyDigrams.addDigrams(node, appliedDigrams, graph);
+        }
+
+        return digramListBasicDigrams;
     }
 
 

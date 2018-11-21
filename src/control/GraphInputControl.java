@@ -1,8 +1,8 @@
 package control;
 
-import model.HyperEdge;
-import model.HyperGraph;
-import model.GraphNode;
+import model.Graph.HyperEdge;
+import model.Graph.HyperGraph;
+import model.Graph.Node;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -44,7 +44,7 @@ class GraphInputControl {
             }
             if (line.contains(":")) {
                 String[] parts = line.split(":");
-                GraphNode node = new GraphNode(Integer.parseInt(parts[0]), parts[1]);
+                Node node = new Node(Integer.parseInt(parts[0]), parts[1]);
                 graph.add(node);
             }
         }
@@ -56,8 +56,8 @@ class GraphInputControl {
                 String[] parts = edge[1].split("->");
                 String[] startnodesIDs = parts[0].split(";");
                 String[] endnodesIDs = parts[1].split(";");
-                GraphNode[] startnodes = convertToNodes(graph, startnodesIDs);
-                GraphNode[] endnode = convertToNodes(graph, endnodesIDs);
+                Node[] startnodes = convertToNodes(graph, startnodesIDs);
+                Node[] endnode = convertToNodes(graph, endnodesIDs);
                 graph.add(new HyperEdge(startnodes, endnode, edge[0]));
             }
         }
@@ -72,8 +72,8 @@ class GraphInputControl {
      * @param labels id's for which the reference are searched.
      * @return the references of the nodes for the id's.
      */
-    private static GraphNode[] convertToNodes(HyperGraph graph, String[] labels) {
-        GraphNode[] nodes = new GraphNode[labels.length];
+    private static Node[] convertToNodes(HyperGraph graph, String[] labels) {
+        Node[] nodes = new Node[labels.length];
         for (int i = 0; i < labels.length; i++) {
             int id = Integer.parseInt(labels[i]);
             nodes[i] = graph.getAllNodes().get(id);

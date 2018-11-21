@@ -1,10 +1,15 @@
 package control;
 
 import model.*;
+import model.Digram.BasicDigram;
+import model.Digram.Digram;
+import model.Graph.Edge;
+import model.Graph.Node;
+import model.Graph.HyperGraph;
+import model.Graph.SimpleEdge;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map.Entry;
 
@@ -121,14 +126,14 @@ class Controller extends Thread {
 			} else if (currentIndex == tuples.size() - 2) {
 				textAreaLine += "Pruning";
 			} else {
-				Digram lastDigram = digrams.get(digrams.size()-1);
+				BasicDigram lastDigram = (BasicDigram) digrams.get(digrams.size()-1);
 				textAreaLine += lastDigram.toStringUnpruned();
 			}
 
-			Tuple<List<GraphNode>, List<Edge>> markedElements = getNodesToMark(tuples, currentIndex + 1);
-			Digram currentDigram = null;
+			Tuple<List<Node>, List<Edge>> markedElements = getNodesToMark(tuples, currentIndex + 1);
+			BasicDigram currentDigram = null;
 			if (0 < currentIndex && currentIndex < tuples.size() - 3 && tuples.get(currentIndex + 1).y.size() > 0)
-				currentDigram = tuples.get(currentIndex + 1).y.get(tuples.get(currentIndex + 1).y.size()-1);
+				currentDigram = (BasicDigram) tuples.get(currentIndex + 1).y.get(tuples.get(currentIndex + 1).y.size()-1);
 
 			guiController.refreshGraph(graph, textAreaLine, markedElements, currentDigram);
 
@@ -152,9 +157,9 @@ class Controller extends Thread {
 	 *            the current simulation step from the step-by-step-simulation.
 	 * @return all nodes and edges that should be marked.
 	 */
-	private Tuple<List<GraphNode>, List<Edge>> getNodesToMark(
+	private Tuple<List<Node>, List<Edge>> getNodesToMark(
 			List<Tuple<HyperGraph, List<Digram>>> tuples, int currentSimulationStepIndex) {
-		List<GraphNode> nodes = new ArrayList<>();
+		List<Node> nodes = new ArrayList<>();
 		List<Edge> edges = new ArrayList<>();
 
 		if (0 < currentSimulationStepIndex && currentSimulationStepIndex < tuples.size() - 2) {
@@ -162,7 +167,7 @@ class Controller extends Thread {
 			HyperGraph graph = tuples.get(currentSimulationStepIndex - 1).x;
 
 			if (tuple.y.size() > 0) {
-				Digram newDigram = tuple.y.get(tuple.y.size()-1);
+				BasicDigram newDigram = (BasicDigram) tuple.y.get(tuple.y.size()-1);
 				for (Entry<Integer, Edge> entry : graph.getAllEdges().entrySet()) {
 					Edge edgeObject = entry.getValue();
 					SimpleEdge edge = (SimpleEdge) edgeObject;
