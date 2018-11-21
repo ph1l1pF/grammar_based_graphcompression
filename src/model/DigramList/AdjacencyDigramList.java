@@ -31,14 +31,7 @@ public class AdjacencyDigramList extends DigramList {
     }
 
 
-    public void addDigrams(Object pivot, List<Digram> appliedDigrams, HyperGraph graph) {
-
-        if (!(pivot instanceof Node)) {
-            throw new IllegalArgumentException();
-        }
-
-        Node midNode = (Node) pivot;
-
+    public void addDigrams(Node midNode, List<Digram> appliedDigrams, HyperGraph graph) {
         List<SimpleEdge> incidentEdges = new ArrayList<>();
         for (Edge edge : graph.getAllEdges().values()) {
             SimpleEdge simpleEdge = (SimpleEdge) edge;
@@ -54,8 +47,8 @@ public class AdjacencyDigramList extends DigramList {
                 SimpleEdge edge2= incidentEdges.get(k);
 
 
-                Node otherNode1 = null;
-                AdjacencyDigram.EdgeDirection dir1 =null;
+                Node otherNode1;
+                AdjacencyDigram.EdgeDirection dir1;
                 if(edge1.getStartnode().equals(midNode)){
                     otherNode1 = edge1.getEndnode();
                     dir1 = AdjacencyDigram.EdgeDirection.INGOING;
@@ -64,8 +57,8 @@ public class AdjacencyDigramList extends DigramList {
                     dir1 = AdjacencyDigram.EdgeDirection.OUTGOING;
 
                 }
-                Node otherNode2 = null;
-                AdjacencyDigram.EdgeDirection dir2 =null;
+                Node otherNode2;
+                AdjacencyDigram.EdgeDirection dir2;
 
                 if(edge2.getStartnode().equals(midNode)){
                     otherNode2 = edge2.getEndnode();
@@ -77,25 +70,34 @@ public class AdjacencyDigramList extends DigramList {
 
                 }
 
-                AdjacencyDigram digram = new AdjacencyDigram(otherNode1.getLabel(), otherNode2.getLabel(), edge1.getEquivalenceClass(otherNode1)
+                AdjacencyDigram foundDigram = new AdjacencyDigram(otherNode1.getLabel(), otherNode2.getLabel(), edge1.getEquivalenceClass(otherNode1)
                         ,edge2.getEquivalenceClass(otherNode2), dir1,dir2, appliedDigrams);
 
-                AdjacencyDigram adjacencyDigram = digrams.get(digram);
-                if(adjacencyDigram==null){
-                    adjacencyDigram = digram;
+                AdjacencyDigram digram = digrams.get(foundDigram);
+                if (digram == null) {
+                    digram = foundDigram;
                 }
-                AdjacencyDigramOccurrence occ = new AdjacencyDigramOccurrence(otherNode1,otherNode2, edge1,edge2,midNode);
+
+                // TODO: here the correct mapping from node in occurrence to node in digram must be done. Not sure if this is correct
+                AdjacencyDigramOccurrence occ;
+                if (otherNode1.getLabel().equals(digram.getLabel1()) && edge1.getEquivalenceClass(otherNode1) == digram.getEquivClass1()) {
+                    occ = new AdjacencyDigramOccurrence(otherNode1, otherNode2, edge1, edge2, midNode);
+                } else {
+                    occ = new AdjacencyDigramOccurrence(otherNode2, otherNode1, edge2, edge1, midNode);
+                }
+
+
                 boolean overlappingWithOtherOccurrence = false;
-                for(DigramOccurrence occOld : adjacencyDigram.getOccurrences()){
+                for (DigramOccurrence occOld : digram.getOccurrences()) {
                     if(occOld.getNode1().equals(otherNode1) || occOld.getNode1().equals(otherNode2)||occOld.getNode2().equals(otherNode1) || occOld.getNode2().equals(otherNode2)){
                         overlappingWithOtherOccurrence=true;
                         break;
                     }
                 }
                 if(!overlappingWithOtherOccurrence){
-                    adjacencyDigram.getOccurrences().add(occ);
+                    digram.getOccurrences().add(occ);
                 }
-                digrams.put(adjacencyDigram,adjacencyDigram);
+                digrams.put(digram, digram);
             }
         }
 

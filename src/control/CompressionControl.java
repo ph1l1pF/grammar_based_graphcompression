@@ -227,6 +227,8 @@ class CompressionControl {
             Node newNode = new Node(digram.getNonterminal());
             graph.add(newNode);
             List<Edge> allEdges = new ArrayList<>(graph.getAllEdges().values());
+
+            boolean edgeForMidNodeAlreadyCreated = false;
             for (int i = 0; i < allEdges.size(); i++) {
                 SimpleEdge oldEdge = (SimpleEdge) allEdges.get(i);
                 Node nodeOcc = getNodeInEdgeAndOccurrence(oldEdge, occ);
@@ -237,8 +239,7 @@ class CompressionControl {
                 if (occ.getEdges().contains(oldEdge)) {
                     // in this case, the edge is removed and no new edge is inserted
 
-                    if (occ instanceof AdjacencyDigramOccurrence) {
-                        AdjacencyDigramOccurrence adjOcc = (AdjacencyDigramOccurrence) occ;
+                    if ((occ instanceof AdjacencyDigramOccurrence) && !edgeForMidNodeAlreadyCreated) {
                         Node nodeMiddle;
                         if (nodeOcc.equals(oldEdge.getStartnode())) {
                             nodeMiddle = oldEdge.getEndnode();
@@ -246,12 +247,17 @@ class CompressionControl {
                             nodeMiddle = oldEdge.getStartnode();
                         }
 
-                        int equivClassMidNode = digram.getMapEquivClasses().get("midNode").get(0).y;
-                        SimpleEdge newEdge = new SimpleEdge(nodeMiddle, oldEdge.getEquivalenceClass(nodeMiddle), newNode, equivClassMidNode);
-                        allEdges.remove(i);
-                        allEdges.add(i, newEdge);
+                        if (!edgeForMidNodeAlreadyCreated) {
+                            int equivClassMidNode = digram.getMapEquivClasses().get("midNode").get(0).y;
+                            SimpleEdge newEdge = new SimpleEdge(nodeMiddle, oldEdge.getEquivalenceClass(nodeMiddle), newNode, equivClassMidNode);
+                            allEdges.remove(i);
+                            allEdges.add(i, newEdge);
+                            graph.getAllNodes().remove(nodeOcc.getId(), nodeOcc);
+                            edgeForMidNodeAlreadyCreated = true;
+                        }
                     } else {
 
+                        graph.getAllNodes().remove(nodeOcc.getId(), nodeOcc);
                         allEdges.remove(i);
                         i--;
                     }
