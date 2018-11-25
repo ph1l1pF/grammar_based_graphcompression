@@ -14,7 +14,7 @@ import java.util.*;
 
 public class SearchWorker extends Thread {
 
-    private final LinkedList<Digram> appliedDigrams;
+    private final List<Digram> appliedDigrams;
     private HyperGraph graph;
     public BasicDigramList digramListBasicDigrams;
     public AdjacencyDigramList digramListAdjacencyDigrams;
@@ -22,7 +22,7 @@ public class SearchWorker extends Thread {
     private List<String> labels;
 
 
-    public SearchWorker(LinkedList<Digram> appliedDigrams, HyperGraph graph, List<String> labels) {
+    public SearchWorker(List<Digram> appliedDigrams, HyperGraph graph, List<String> labels) {
         this.appliedDigrams = appliedDigrams;
         this.graph = graph;
         this.labels = labels;

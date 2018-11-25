@@ -70,6 +70,9 @@ public class AdjacencyDigramList extends DigramList {
 
                 }
 
+                if (!labels.contains(otherNode1.getLabel()) || !labels.contains(otherNode2.getLabel())) {
+                    continue;
+                }
                 AdjacencyDigram foundDigram = new AdjacencyDigram(otherNode1.getLabel(), otherNode2.getLabel(), edge1.getEquivalenceClass(otherNode1)
                         ,edge2.getEquivalenceClass(otherNode2), dir1,dir2, appliedDigrams);
 
@@ -98,6 +101,9 @@ public class AdjacencyDigramList extends DigramList {
                     digram.getOccurrences().add(occ);
                 }
                 digrams.put(digram, digram);
+                if (getMaxDigram() == null || getMaxDigram().getSize() < digram.getSize()) {
+                    maxDigram = digram;
+                }
             }
         }
 

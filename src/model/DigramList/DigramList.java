@@ -19,6 +19,7 @@ public abstract class DigramList {
      * a set for the necessary different labels of the nodes in the graph.
      */
     protected final List<String> labels;
+    protected Digram maxDigram;
 
     /**
      * Constructor for the DigramList.
@@ -36,16 +37,6 @@ public abstract class DigramList {
      * @return digram with the maximal associated digrams.
      */
     public Digram getMaxDigram() {
-        //TODO: sinnlos das immer wieder zu berechnen, besser einmal abspeichern
-        Digram maxDigram = null;
-        int currentSize = 1;
-        for (Digram digram : getAllActiveDigrams()) {
-            if (digram.getSize() > currentSize) {
-                maxDigram = digram;
-                currentSize = digram.getSize();
-                digram.setBeenApplied();
-            }
-        }
         return maxDigram;
     }
 

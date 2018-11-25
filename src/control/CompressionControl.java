@@ -20,7 +20,7 @@ import java.util.*;
  * @author Matthias Duerksen
  * @see HyperGraph
  */
-class CompressionControl {
+public class CompressionControl {
     /**
      * all applied appliedDigrams.
      */
@@ -35,6 +35,7 @@ class CompressionControl {
 
     private HyperGraph graph;
 
+
     /**
      * list of all intermediate compression results.
      */
@@ -47,7 +48,7 @@ class CompressionControl {
      */
     public CompressionControl(HyperGraph graph) {
         this.graph = graph;
-        workers = new SearchWorker[Runtime.getRuntime().availableProcessors() * 2];
+        workers = new SearchWorker[/*Runtime.getRuntime().availableProcessors() * 2*/1];
 
     }
 
@@ -66,16 +67,19 @@ class CompressionControl {
 
         while (true) {
             findAllDigrams();
-            Digram digramToReplace;
-            if ((basicDigramList.getMaxDigram()==null && adjacencyDigramList.getMaxDigram()!=null)
-                    ||adjacencyDigramList.getMaxDigram().getSize() > basicDigramList.getMaxDigram().getSize()) {
-                digramToReplace = adjacencyDigramList.getMaxDigram();
-            } else {
+            Digram digramToReplace = null;
+            int maxDigramSize = 0;
+            if (basicDigramList.getMaxDigram() != null) {
                 digramToReplace = basicDigramList.getMaxDigram();
+                maxDigramSize = basicDigramList.getMaxDigram().getSize();
+            }
+            if (adjacencyDigramList.getMaxDigram() != null && adjacencyDigramList.getMaxDigram().getSize() > maxDigramSize) {
+                digramToReplace = adjacencyDigramList.getMaxDigram();
             }
             if (digramToReplace == null) {
                 break;
             }
+
             replaceAllOccurrences(digramToReplace);
             appliedDigrams.add(digramToReplace);
 
@@ -220,7 +224,7 @@ class CompressionControl {
      *
      * @param digram the digram for which the method will be executed.
      */
-    public void replaceAllOccurrences(Digram digram) {
+    private void replaceAllOccurrences(Digram digram) {
 
         digram.setNonterminal();
         for (DigramOccurrence occ : digram.getOccurrences()) {
@@ -326,7 +330,7 @@ class CompressionControl {
      * @param graph the graph for which the method will be executed.
      * @return all necessary different labels.
      */
-    private LinkedList<String> getAllDuplicatedLabelsLabels(HyperGraph graph) {
+    public LinkedList<String> getAllDuplicatedLabelsLabels(HyperGraph graph) {
         HashMap<String, Integer> labelCounter = new HashMap<>();
 
         //Find All different Labels with more then 2 occurences
@@ -355,7 +359,7 @@ class CompressionControl {
      *
      * @param edge the edge for which the method will be executed.
      */
-    public static void checkAndAddEdgeToDigram(SimpleEdge edge, BasicDigramList digramList, LinkedList<Digram> appliedDigrams) {
+    public static void checkAndAddEdgeToDigram(SimpleEdge edge, BasicDigramList digramList, List<Digram> appliedDigrams) {
         BasicDigram digram = digramList.getDigram(edge, appliedDigrams);
         if (digram != null && !digram.containsNode(edge.getStartnode().getId()) && !digram.containsNode(edge.getEndnode().getId())) {
             digram.addOccurrence(edge);
@@ -487,6 +491,10 @@ class CompressionControl {
      */
     private void addCurrentGraph(HyperGraph graph, LinkedList<Digram> digrams) {
         allGraphs.add(new Tuple<>(graph.clone(), (LinkedList<Digram>) digrams.clone()));
+    }
+
+    public HyperGraph getGraph() {
+        return graph;
     }
 
 }

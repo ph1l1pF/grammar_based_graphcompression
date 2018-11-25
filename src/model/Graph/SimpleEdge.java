@@ -98,6 +98,18 @@ public class SimpleEdge extends Edge {
     }
 
     @Override
+    public boolean equals(Object obj) {
+        if (obj instanceof SimpleEdge) {
+            SimpleEdge otherEdge = (SimpleEdge) obj;
+            return startnode.getLabel().equals(otherEdge.getStartnode().getLabel()) &&
+                    endnode.getLabel().equals(otherEdge.getEndnode().getLabel()) &&
+                    eq_start == otherEdge.eq_start &&
+                    eq_end == otherEdge.eq_end;
+        }
+        return false;
+    }
+
+    @Override
     public String toString() {
         return startnode + " "+eq_start +"->"+eq_end+" "+endnode;
     }

@@ -65,7 +65,12 @@ public class BasicDigramList extends DigramList{
         }
         if (!digramList.get(tuple1).containsKey(tuple2)) {
 
-            digramList.get(tuple1).put(tuple2, new BasicDigram(label1, label2, equiv1, equiv2, appliedDigrams));
+            BasicDigram basicDigram = new BasicDigram(label1, label2, equiv1, equiv2, appliedDigrams);
+            digramList.get(tuple1).put(tuple2, basicDigram);
+
+            if (getMaxDigram() == null || getMaxDigram().getSize() < basicDigram.getSize()) {
+                maxDigram = basicDigram;
+            }
         }
         return digramList.get(tuple1).get(tuple2);
     }
